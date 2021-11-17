@@ -18,7 +18,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 @SpringBootApplication
 @Configuration
 @EnableJpaRepositories(basePackages = "com.assessment.assescor")
-@ComponentScan({"com.assessment.assescor.repository"})
+@ComponentScan({"com.assessment.assescor"})
 public class RestServiceApplication {
 
     public static void main(String[] args) {

@@ -11,7 +11,7 @@ Zugriff auf die In-Memory Datenbanken
 localhost:8080/h2-console
 
 
-**GET** /api/csv/users
+**GET** api/v1/person/persons
 ```json
 [{
 "id" : 1,
@@ -26,7 +26,7 @@ localhost:8080/h2-console
 }]
 ```
 
-**GET** /api/csv/users/{id}
+**GET** api/v1/person/persons/{Id}
 
 ```json
 {
@@ -39,7 +39,7 @@ localhost:8080/h2-console
 }
 ```
 
-**GET** /api/csv/users/color/{color}
+**GET** api/v1/person/persons/color/{Color}
 ```json
 [{
 "id" : 1,

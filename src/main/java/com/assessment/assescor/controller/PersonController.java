@@ -1,20 +1,23 @@
 package com.assessment.assescor.controller;
 
+import com.assessment.assescor.ResponseMessage;
 import com.assessment.assescor.entity.Person;
 import com.assessment.assescor.service.CSVService;
 import com.assessment.assescor.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "api/v1/person")
 public class PersonController {
 
+    private static final String SAVE_SUCCESSFUL = "Successfully saved the person details" ;
+    private static final String COULD_NOT_SAVE = "Could not upload person details";
     private final CSVService fileService;
 
 
@@ -26,13 +29,13 @@ public class PersonController {
         this.personService = personService;
     }
 
-    @GetMapping
-    public List<Person> getPersons(){
-        return personService.getPersons();
+    @GetMapping(produces = "application/json")
+    public ResponseEntity<Object>  getPersons(){
+        return  new ResponseEntity<Object>(personService.getPersons(), HttpStatus.OK);
     }
 
-    @GetMapping("/persons")
-    public ResponseEntity<Object> getAllUsers() {
+    @GetMapping(value = "/persons", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Person>> getAllPersons() {
         try {
             List<Person> persons = fileService.getAllPersons();
 
@@ -40,39 +43,54 @@ public class PersonController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
-            return new ResponseEntity<Object>(persons, HttpStatus.OK);
+            return new ResponseEntity<List<Person>>(persons, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("/persons/{Id}")
-    public ResponseEntity<Object> getUserById(@PathVariable("Id") Long Id) {
+    @GetMapping(value = "/persons/{Id}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Person> getPersonById(@PathVariable("Id") Long Id) {
         try {
-            Optional<Person> person = fileService.getPersonById(Id);
+            Person person = fileService.getById(Id);
 
             if (person == null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
-            return new ResponseEntity<Object>(person, HttpStatus.OK);
+            return new ResponseEntity<Person>(person, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("/persons/color/{Color}")
-    public ResponseEntity<Object> getUsersByColor(@PathVariable("Color") String Color) {
+    @GetMapping("/persons/color/{color}")
+    public ResponseEntity<List<Person>> getUsersByColor(@PathVariable("color") String color) {
         try {
-            List<Person> persons = fileService.getPersonsByColor(Color);
+            List<Person> persons = fileService.getPersonsByColor(color);
 
             if (persons == null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
-            return new ResponseEntity<Object>(persons, HttpStatus.OK);
+            return new ResponseEntity<List<Person>>(persons, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/person/save")
+    public ResponseEntity<Person> savePerson(@RequestBody Person person) {
+        String message = "";
+        try{
+            Person savedPerson = personService.savePerson(person);
+            message = SAVE_SUCCESSFUL;
+            return new ResponseEntity<Person>(person, HttpStatus.OK);
+        }
+        catch (Exception e){
+            message =  COULD_NOT_SAVE + "!" + e.getMessage();
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

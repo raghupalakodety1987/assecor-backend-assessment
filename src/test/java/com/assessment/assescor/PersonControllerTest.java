@@ -1,115 +1,183 @@
 package com.assessment.assescor;
 
-import com.assessment.assescor.config.CSVConfig;
 import com.assessment.assescor.config.PersonCOnfig;
 import com.assessment.assescor.controller.PersonController;
 import com.assessment.assescor.entity.Person;
 import com.assessment.assescor.repository.PersonRepository;
-import com.assessment.assescor.service.CSVService;
 import com.assessment.assescor.service.PersonService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 
-@SpringBootTest(classes = PersonController.class)
-@AutoConfigureMockMvc
-@ContextConfiguration(classes = {PersonCOnfig.class, CSVConfig.class},  loader = AnnotationConfigContextLoader.class)
+//@SpringBootTest(classes = PersonController.class)
+//@ContextConfiguration(classes = {PersonCOnfig.class, CSVConfig.class},  loader = AnnotationConfigContextLoader.class)
 @ActiveProfiles("test")
-@RunWith(MockitoJUnitRunner.class)
+
+@RunWith(SpringRunner.class)
+//@WebMvcTest(value = PersonController.class, secure = false)
+@SpringBootTest(classes = PersonCOnfig.class)
+@AutoConfigureMockMvc
 public class PersonControllerTest {
     private static final ObjectMapper om = new ObjectMapper();
+
+    private static Logger logger = LoggerFactory.getLogger(PersonControllerTest.class);
+
+    private static final String LASTNAME = "Palakodety";
+    private static final String NAME = "Matthias";
+
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
-    private PersonRepository personRepository;
 
-    @Autowired
-    @Qualifier("resourceStream")
-    private CSVService csvService;
+    private ObjectMapper objectMapper;
 
-    @Mock
-    private PersonController personController;
-
-    @Mock
+    @MockBean
     private PersonService personService;
 
-    public PersonControllerTest(){
-        csvService = new CSVService();
-        personService = new PersonService(personRepository);
-        personController = new PersonController(csvService, personService);
-    }
+    @Autowired
+    private PersonRepository personRepository;
+
+    @MockBean
+    private PersonController personController;
+
+
+    private Person person1;
+
+    private Person person2;
+
+    private Person person3;
+
+    private Person person4;
+
+    private Person person5;
+
+    private String personJson;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    private org.springframework.http.ResponseEntity ResponseEntity;
 
     @Before
-    public void init(){
-        //ong id, String name, String lastName, String zipCode, String city, String color
+    public void setUp() throws JsonProcessingException {
+        person1 = new Person(1L, "Raghunandan", "Palakodety", "45127", "Essen", "blau");
+        person2 = new Person(2L, "Matthias", "Müller", "45127", "Essen", "grün");
+        person3 = new Person(3L, "Jürgen", "Gall", "45127", "Essen", "blau");
+        person3 = new Person(4L, "Heinrich", "Alexander", "45147", "Essen", "grün");
+        person4 = new Person(10L, "Monke", "Hans", "45147", "Bonn", "violett");
+        person5 = new Person(11L, "Ethan", "Hawke", "45127", "Essen", "Lila");
+        objectMapper = new ObjectMapper();
         mockMvc = MockMvcBuilders.standaloneSetup(personController).build();
-        Person person1 = new Person(1, "Raghu", "Palakodety", "45127", "Essen", "grün");
-        when(personRepository.findById(1L)).thenReturn(Optional.of((person1)));
-        //when(personController.getPersons()).thenReturn((List<Person>) Stream.of(person1, person2));
+
+
     }
 
+
     @Test
-    public void findPersonById() throws Exception {
-/*        mockMvc.perform(get("/persons/1")).
-                andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).
-                andExpect(status().isOk()).
-                andExpect(MockMvcResultMatchers.jsonPath("$id", is(1))).
-                andExpect((ResultMatcher) jsonPath("$name", is("Müller"))).
-                andExpect((ResultMatcher) jsonPath("$lastName", is("Hans"))).
-                andExpect((ResultMatcher) jsonPath("$zipCode", is("67742"))).
-                andExpect((ResultMatcher) jsonPath("$city", is("Lauterecken"))).
-                andExpect((ResultMatcher) jsonPath("$color", is("blau")));*/
-        Person person2 = new Person(1L, "Raghu", "Palakodety", "45127", "Essen", "grün");
+    public void testGetPersonById() throws Exception {
 
-        when(personService.getPerson(any(Long.class))).thenReturn(Optional.of(person2));
-        //doReturn(person2).when(personService).getPerson(any(Long.class));
-        mockMvc.perform(MockMvcRequestBuilders.
-                get("/api/v1/person/persons/1").
-                accept(MediaType.APPLICATION_JSON)).
-                andDo(print()).
-                andExpect(status().isOk()).
-                andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1L)).
-                andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Müller"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Hans")).
-                andExpect(MockMvcResultMatchers.jsonPath("$.zipCode").value("67742"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.city").value("Lauterecken"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.color").value("blau"));
 
-        verify(personRepository, times(1)).findById(1L);
+        ResponseEntity<Person> responseEntity = new ResponseEntity<>(person2, HttpStatus.OK);
+
+        when(personController.getPersonById(any(Long.class))).thenReturn(responseEntity);
+
+
+        MvcResult result = mockMvc.perform(get("/api/v1/person/persons/{Id}", 1)).andExpect(status().isOk()).andReturn();
+        Assert.assertEquals(NAME, person2.getName());
+    }
+
+
+    @Test
+    public void testGetPersons() throws Exception {
+
+       List<Person> personsList = Arrays.asList(person1, person2, person3, person4);
+
+        ResponseEntity<List<Person>> responseEntity = new ResponseEntity<>(personsList, HttpStatus.OK);
+
+        when(personController.getAllPersons()).thenReturn(responseEntity);
+
+
+        MvcResult result = (MvcResult) this.mockMvc.perform(MockMvcRequestBuilders
+                .get("/api/v1/person/persons")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+        .andReturn();
+
+        List<Person> persons = objectMapper.readValue(result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Person.class));
+
+        Person personResult = persons.stream().filter(p -> p.getLastName().equals(LASTNAME)).findFirst().orElse(null);
+        Assert.assertEquals(persons.size(), 4);
+        Assert.assertNotNull(personResult);
+    }
+
+
+    @Test
+    public void testGetPersonsByColor() throws Exception {
+
+
+        List<Person> personsList = Arrays.asList(person1, person3);
+
+        ResponseEntity<List<Person>> responseEntity = new ResponseEntity<>(personsList, HttpStatus.OK);
+
+        when(personController.getUsersByColor(any(String.class))).thenReturn(responseEntity);
+
+        MvcResult result = (MvcResult) this.mockMvc.perform(get("/api/v1/person/persons/color/{Color}", "blau").characterEncoding(StandardCharsets.UTF_8.name())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print()).andReturn();
+
+        List<Person> persons = objectMapper.readValue(result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Person.class));
+        Assert.assertEquals(persons.size(), 2);
+    }
+
+
+    @Test
+    public void whenSaved_thenShouldbeSuccessful() throws Exception {
+
+
+        Person personToBeSaved = person4;
+
+        ResponseEntity<Person> responseEntity = new ResponseEntity<>(personToBeSaved, HttpStatus.OK);
+
+        when(personController.savePerson(any(Person.class))).thenReturn(responseEntity);
+
+
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/person/persons/save").contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(responseEntity)))
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 }

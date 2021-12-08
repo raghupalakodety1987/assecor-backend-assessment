@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PersonRepository extends JpaRepository<Person, Long> {
 
-    Optional<Person> findById(Long Id);
+    //Optional<Person> findById(Long Id);
     List<Person> findByColor(String Color);
+
+    Person getById(Long id);
 }
 

@@ -23,8 +23,13 @@ public class PersonService {
         return personRepository.findAll();
     }
     public Optional<Person> getPerson(Long id){ return personRepository.findById(id);}
-    public void savePersons(List<Person> personList){
-        personRepository.saveAll(personList);
+
+    public Person savePerson(Person person){
+        return personRepository.save(person);
+    }
+
+    public List<Person> getPersonsByColor(String color){
+       return personRepository.findByColor(color);
     }
 
 }

@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class CSVService {
@@ -38,11 +37,13 @@ public class CSVService {
         return (List<Person>) repository.findAll();
     }
 
-    public Optional<Person> getPersonById(Long Id){
+  /*  public Person getPersonById(Long Id){
         return repository.findById(Id);
-    }
+    }*/
 
     public List<Person> getPersonsByColor(String Color){
         return repository.findByColor(Color);
     }
+
+    public Person getById(Long Id){return repository.getById(Id);}
 }

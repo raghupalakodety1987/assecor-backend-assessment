@@ -12,17 +12,17 @@ import java.io.IOException;
 @Configuration
 public class CSVConfig {
 
-    @Bean
+/*    @Bean
     public CSVService resourceStream() throws IOException {
         CSVService csvService = new CSVService();
         return csvService;
-    }
+    }*/
 
-    @Bean(name="entityManagerFactory")
+/*    @Bean(name="entityManagerFactory")
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
 
         return sessionFactory;
-    }
+    }*/
 }
 
